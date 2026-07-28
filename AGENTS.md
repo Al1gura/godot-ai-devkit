@@ -4,11 +4,21 @@
 
 ## 接手项目
 
-1. 完整读取同目录 `README.md` 和 `SKILL.md`，再读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，按当前任务选择相关细分技能；不要一次加载全部 54 个 Skill 正文。
+1. 完整读取同目录 `README.md` 和 `SKILL.md`，再读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，按当前任务选择相关细分技能；不要一次加载全部 54 个 GodotPrompter Skill 正文。需要 Godot 运行态证据时再读取 `skills/gdmcp/SKILL.md`。
 2. 检查目标项目的实际文件、Git 状态、`project.godot`、已有项目指令、文档入口、相关代码和测试，不凭文件名猜项目状态。
 3. 从现有材料确认产品是什么、服务谁、核心使用情境、目标平台、精确 Godot 版本、主要语言、明确不做和当前优先级。
 4. 只有会改变产品方向且无法从项目发现的信息才询问用户；技术名词、文件归类和验证方法由 AI 负责。
 5. 长期项目若没有项目根 `AGENTS.md`，由 AI 根据已经确认的项目事实创建一份简短的项目专用指令，并指向本开发包；不让用户复制、改名或填写模板。一次性原型不强制创建。
+
+## MCP 开发基线
+
+- 用户把本开发包交给 AI，即授权 AI 在当前项目内配置随包 Godot-MCP-Native 1.0.8；不需要用户手动复制、改名或再次确认普通项目文件写入。
+- 配置前检查项目根 `addons/godot_mcp/`、`.gdmcp/`、`project.godot` 的插件启用项、精确 Godot 版本和端口约定。已有不同版本、本地修改或同名端口冲突时不得覆盖，先报告差异和影响。
+- 无冲突时，从本包复制 `addons/godot_mcp/` 到项目根同一路径；Windows x86_64 同时复制 `.gdmcp/bin/gdmcp.exe`。安全合并 `project.godot` 的 `res://addons/godot_mcp/plugin.cfg` 启用项，不删除或重排其他插件。
+- macOS 与 Linux 复用随包 Godot 插件，但必须从 Godot-MCP-Native v1.0.8 发布页取得对应平台的 `gdmcp` 并校验发布指纹；不得尝试运行 Windows EXE。
+- 默认 HTTP（网页传输）端口为 `9080`。项目另有端口时以项目为准，并把实际 MCP 地址写入项目开发指令或现有工具链文档；不得把某个项目的自定义端口推广为通用默认值。
+- 启动编辑器后，命令行型 AI 读取 `skills/gdmcp/SKILL.md`，优先调用项目根 `.gdmcp/bin/gdmcp.exe`，先运行 `doctor` 和 `editor state`。项目定义了地址时每条命令显式传入该地址；存在 EXE 或插件目录不等于连接成功。
+- MCP 只在运行态证据能降低风险时连接。纯文档、静态检查、普通文件操作不为形式启动；场景树、节点、信号、输入、编辑器/游戏日志和实时状态需要真实证据时使用。MCP 不能替代可重复自动测试，自动测试也不能冒充当前实例的运行态证据。
 
 ## 每次任务读取什么
 

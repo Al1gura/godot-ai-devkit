@@ -1,8 +1,8 @@
 # Godot AI DevKit
 
-一套可以直接放进 Godot 项目、交给 AI 阅读的开发能力包。它把 Gvtt 长期开发中可跨项目复用的产品判断、开发要求、错误经验、Godot 代码规范、完整 GodotPrompter Skill（技能）和 Godot 4.7 离线文档整理在一起。
+一套可以直接放进 Godot 项目、交给 AI 阅读的开发能力包。它把 Gvtt 长期开发中可跨项目复用的产品判断、开发要求、错误经验、Godot 代码规范、完整 GodotPrompter Skill（技能）、Godot 4.7 离线文档和 MCP（模型上下文协议）运行态工具整理在一起。
 
-它不依赖 Codex、Claude、Gemini 或其他特定 AI，也不是安装器、Godot 插件或运行工具。
+它不依赖 Codex、Claude、Gemini 或其他特定 AI，也不是安装器。包内带有 Godot-MCP-Native 1.0.8 插件、Windows x86_64（64 位）版 `gdmcp` 命令行程序及其 Skill，由接手项目的 AI 检查冲突后配置到目标项目。
 
 ## AI 从这里开始
 
@@ -12,8 +12,8 @@
 2. 检查目标 Godot 项目的实际文件、Git 状态、精确 Godot 版本和已有规则。
 3. 读取本开发包的 `AGENTS.md`，其中已经写明每次任务读什么、不同内容写到哪里和何时更新。目标项目已有自己的根 `AGENTS.md` 时同时遵守，冲突处以更具体的项目规则为准。
 4. 长期项目没有根 `AGENTS.md` 时，由 AI 根据已确认的项目事实创建简短的项目专用指令并指向本开发包；不要求用户复制、改名、填模板或理解内部文件。
-5. 先读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，再根据根 `SKILL.md` 和当前任务，只读取需要的细分技能与离线文档；不要一次读取全部 54 个 Skill 正文。
-6. 检查项目已有工具和插件。只有当前任务确实需要时才推荐安装，先说明解决什么问题、版本/许可证/冲突和不安装的影响；未经用户授权不安装外部工具。
+5. 先读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，再根据根 `SKILL.md` 和当前任务，只读取需要的细分技能与离线文档；不要一次读取全部 54 个 GodotPrompter Skill 正文。需要 Godot 编辑器运行态证据时再读取 `skills/gdmcp/SKILL.md`。
+6. 按下文“MCP 开发基线”检查并配置随包运行态工具；检查其他已有工具和插件，只在当前任务确实需要时才推荐新增。
 7. 向用户询问无法从项目发现且会改变产品方向的选择；不要让用户补技术术语、重复执行自动验证或管理本开发包内部文件。
 
 ## 里面有什么
@@ -25,6 +25,8 @@ godot-ai-devkit/
 ├── AGENTS.md
 ├── LICENSE
 ├── THIRD_PARTY_NOTICES.md
+├── addons/godot_mcp/          Godot-MCP-Native 1.0.8 干净发布文件
+├── .gdmcp/bin/gdmcp.exe       Windows x86_64 命令行程序
 ├── references/
 │   ├── product_first.md
 │   ├── reuse_first.md
@@ -33,8 +35,9 @@ godot-ai-devkit/
 │   ├── verification.md
 │   ├── debugging.md
 │   └── godot-4.7-docs/       Godot 4.7 英文离线文档
-└── skills/                    GodotPrompter v1.12.0 的 54 个按需 Skill
-    ├── using-godot-prompter/  技能目录与任务路由
+└── skills/
+    ├── gdmcp/                 MCP 命令行按需使用规则
+    ├── using-godot-prompter/  GodotPrompter 技能目录与任务路由
     ├── godot-project-setup/
     ├── gdscript-patterns/
     ├── scene-organization/
@@ -46,6 +49,8 @@ godot-ai-devkit/
 
 - 根 `SKILL.md` 是总入口，负责产品判断、现成方案优先、最小实现、验证和日志。
 - `skills/` 是固定在 `v1.12.0 / 7b3b528` 的完整 GodotPrompter 专业能力层，共 54 个 Skill。AI 先看目录和简介，再按任务读取相关正文；本包不会要求一次加载全部内容。
+- `skills/gdmcp/` 是 Godot-MCP-Native v1.0.8 的官方命令行 Skill，只在需要编辑器或游戏运行态证据时读取。
+- `addons/godot_mcp/` 与 `.gdmcp/bin/gdmcp.exe` 是内置的运行态开发基线；前者跨平台，后者是 Windows x86_64 版本。
 - `references/` 保存开发要求、代码规范、错误经验和精确版本文档。
 - `AGENTS.md` 是直接生效的通用开发规则，并包含文档读取、归类和更新方法；不是模板。
 
@@ -62,15 +67,28 @@ godot-ai-devkit/
 
 在 Codex 中，只有位于项目 `.agents/skills/` 或用户 `~/.agents/skills/` 的技能才会被原生自动发现。本开发包作为项目内普通文件夹使用时，由 README 和根 `SKILL.md` 显式引导读取，不冒充已经完成 Codex 全局安装。
 
+## MCP 开发基线
+
+把本开发包交给 AI，即表示允许 AI 在当前项目内配置随包的 MCP 运行态工具，不需要用户再做复制、改名或选择文件：
+
+1. AI 先检查项目根现有的 `addons/godot_mcp/`、`.gdmcp/`、`project.godot` 插件启用项和端口约定。
+2. 没有冲突时，把本包 `addons/godot_mcp/` 复制到项目根 `addons/godot_mcp/`。Windows x86_64 项目同时把本包 `.gdmcp/bin/gdmcp.exe` 复制到项目根同一路径，并安全合并 `project.godot` 的插件启用项。
+3. 已有同版本或更新版本时优先复用；已有不同版本、本地修改或同名端口占用时不得覆盖，先报告差异和影响。
+4. macOS 或 Linux 使用同一个 Godot 插件，但不能运行随包 Windows EXE；AI 应从同一 v1.0.8 发布页取得对应平台的 `gdmcp`，并核对发布校验值。需要联网或系统权限时按所用 AI 的安全规则申请。
+5. 插件默认 HTTP（网页传输）端口是 `9080`。已有项目可以选择其他端口，但必须把实际地址记入项目开发指令；同一项目不要让两个工具占用同一端口。
+6. 启动 Godot 编辑器后，命令行型 AI 先执行 `doctor` 和 `editor state` 证明连接；无命令行能力的 AI 使用自身支持的 HTTP MCP 配置连接同一地址。不同 AI 的配置格式不同，不预先生成一堆厂商专用配置文件。
+
+MCP 是 Godot 运行态开发和验收的必要通道，但不是每一步都要连接。纯文档、普通文件整理、静态搜索和不涉及运行态的检查直接使用文件工具；场景树、节点、信号、输入、实时状态、编辑器日志或真实运行行为需要证据时使用 MCP。自动测试仍负责可重复的确定性验证，两者不能互相替代。
+
 ## Gvtt 已验证的工具经验
 
-这些工具不会随包自动安装。AI 应先检查目标项目，只在当前风险需要时向用户建议。
+MCP 已作为本包开发基线内置；表中其他工具不会随包自动安装。AI 应先检查目标项目，只在当前风险需要时向用户建议。
 
 | 工具或方式 | Gvtt 中的实际用途 | 新项目何时考虑 | 默认结论 |
 |---|---|---|---|
 | Godot 精确版本控制台入口 | 执行导入检查、自制 `.gd + .tscn` 回归场景、无窗口测试和 Windows 可见测试 | 需要可重复程序验证时；使用目标项目对应版本 | 长期项目推荐，是 Godot 官方程序的一部分 |
 | 自制 Godot 测试场景 | 覆盖业务逻辑、场景生命周期、真实 Viewport（视口）输入、可见窗口和端到端流程 | 测试需要完整 Godot 节点/场景行为时 | Gvtt 的主要测试方式，不依赖外部测试框架 |
-| [Godot-MCP-Native](https://github.com/yurineko73/Godot-MCP-Native) 1.0.8 + gdmcp | 默认运行态接口；检查编辑器身份、场景树、节点、信号、输入、日志和当前运行状态 | 当前任务改变或诊断真实运行态，静态检查和自动测试不能覆盖时 | 按需推荐；先验证项目、版本和连接，不为纯文档任务安装 |
+| [Godot-MCP-Native](https://github.com/yurineko73/Godot-MCP-Native) 1.0.8 + gdmcp | 默认运行态接口；检查编辑器身份、场景树、节点、信号、输入、日志和当前运行状态 | 新项目先配置；当前任务改变或诊断真实运行态时连接 | 随包内置并检查冲突后配置；纯文档任务无需连接 |
 | Godot AI 3.0.3 | Gvtt 的旧运行态接口，当前只在新接口缺少能力或故障时备用 | 已有项目依赖它，或明确验证新接口无法完成必要工作时 | 新项目不默认安装，不与其他接口混用端口和证据 |
 | gdstyle CLI（代码风格命令行工具） | 独立检查 GDScript 风格；其编辑器原生扩展曾与 Godot 4.7 运行时发生兼容问题 | 项目需要统一、可自动执行的风格检查时 | 可选；优先 CLI，启用编辑器扩展前重新核对版本兼容 |
 | gdUnit4 / GUT（Godot 单元测试框架） | Gvtt 曾安装或评估，但正式回归没有依赖其 API | 新项目偏好标准测试框架，且版本、维护和工作流匹配时 | 可选，不因 Gvtt 目录里存在就默认安装 |
@@ -96,4 +114,4 @@ godot-ai-devkit/
 
 ## 许可证
 
-本包原创内容使用 MIT License（MIT 许可证）。GodotPrompter v1.12.0 使用 MIT License；`references/godot-4.7-docs/` 中的 Godot 文档使用 CC BY 3.0（知识共享署名 3.0），详见 `THIRD_PARTY_NOTICES.md`。
+本包原创内容使用 MIT License（MIT 许可证）。GodotPrompter v1.12.0 与 Godot-MCP-Native v1.0.8 使用 MIT License；`references/godot-4.7-docs/` 中的 Godot 文档使用 CC BY 3.0（知识共享署名 3.0），详见 `THIRD_PARTY_NOTICES.md`。
