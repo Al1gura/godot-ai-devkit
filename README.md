@@ -1,6 +1,6 @@
 # Godot AI DevKit
 
-一套可以直接放进 Godot 项目、交给 AI 阅读的开发能力包。它把 Gvtt 长期开发中可跨项目复用的产品判断、开发要求、错误经验、Godot 代码规范、基础细分 Skill（技能）和 Godot 4.7 离线文档整理在一起。
+一套可以直接放进 Godot 项目、交给 AI 阅读的开发能力包。它把 Gvtt 长期开发中可跨项目复用的产品判断、开发要求、错误经验、Godot 代码规范、完整 GodotPrompter Skill（技能）和 Godot 4.7 离线文档整理在一起。
 
 它不依赖 Codex、Claude、Gemini 或其他特定 AI，也不是安装器、Godot 插件或运行工具。
 
@@ -12,7 +12,7 @@
 2. 检查目标 Godot 项目的实际文件、Git 状态、精确 Godot 版本和已有规则。
 3. 读取本开发包的 `AGENTS.md`，其中已经写明每次任务读什么、不同内容写到哪里和何时更新。目标项目已有自己的根 `AGENTS.md` 时同时遵守，冲突处以更具体的项目规则为准。
 4. 长期项目没有根 `AGENTS.md` 时，由 AI 根据已确认的项目事实创建简短的项目专用指令并指向本开发包；不要求用户复制、改名、填模板或理解内部文件。
-5. 根据根 `SKILL.md` 的任务表，只读取当前需要的细分技能和离线文档。
+5. 先读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，再根据根 `SKILL.md` 和当前任务，只读取需要的细分技能与离线文档；不要一次读取全部 54 个 Skill 正文。
 6. 检查项目已有工具和插件。只有当前任务确实需要时才推荐安装，先说明解决什么问题、版本/许可证/冲突和不安装的影响；未经用户授权不安装外部工具。
 7. 向用户询问无法从项目发现且会改变产品方向的选择；不要让用户补技术术语、重复执行自动验证或管理本开发包内部文件。
 
@@ -33,20 +33,19 @@ godot-ai-devkit/
 │   ├── verification.md
 │   ├── debugging.md
 │   └── godot-4.7-docs/       Godot 4.7 英文离线文档
-└── skills/
-    ├── godot-project-start/
-    ├── godot-gdscript/
-    ├── godot-scene-data/
-    ├── godot-ui-input/
+└── skills/                    GodotPrompter v1.12.0 的 54 个按需 Skill
+    ├── using-godot-prompter/  技能目录与任务路由
+    ├── godot-project-setup/
+    ├── gdscript-patterns/
+    ├── scene-organization/
+    ├── godot-ui/
     ├── godot-debugging/
     ├── godot-testing/
-    ├── godot-code-review/
-    ├── godot-2d/
-    └── godot-3d/
+    └── ...                    动画、音频、物理、存档、着色器、导出等
 ```
 
 - 根 `SKILL.md` 是总入口，负责产品判断、现成方案优先、最小实现、验证和日志。
-- `skills/` 是按任务读取的基础 Godot 技能，不让无关领域占用 AI 上下文。
+- `skills/` 是固定在 `v1.12.0 / 7b3b528` 的完整 GodotPrompter 专业能力层，共 54 个 Skill。AI 先看目录和简介，再按任务读取相关正文；本包不会要求一次加载全部内容。
 - `references/` 保存开发要求、代码规范、错误经验和精确版本文档。
 - `AGENTS.md` 是直接生效的通用开发规则，并包含文档读取、归类和更新方法；不是模板。
 
@@ -59,7 +58,9 @@ godot-ai-devkit/
 
 之后由 AI 读取 README、开发规则、技能和文档，检查或建立项目专用规则，并询问真正缺失的产品信息。用户不需要知道 `SKILL.md`、`AGENTS.md` 的名字，也不需要为不同 AI 适配文件结构。
 
-不同 AI 自动发现项目指令的标准并不统一，因此 README 是通用入口：即使 AI 不自动识别 Skill（技能）或 `AGENTS.md`，也能按本页找到全部内容。支持技能自动发现的 AI 仍可使用该能力，但不是前提。
+不同 AI 自动发现项目指令的标准并不统一，因此 README 是通用入口：即使 AI 不自动识别 Skill（技能）或 `AGENTS.md`，也能按本页进入 `using-godot-prompter` 并选择相关能力。支持技能自动发现的 AI 仍可使用该能力，但不是前提。
+
+在 Codex 中，只有位于项目 `.agents/skills/` 或用户 `~/.agents/skills/` 的技能才会被原生自动发现。本开发包作为项目内普通文件夹使用时，由 README 和根 `SKILL.md` 显式引导读取，不冒充已经完成 Codex 全局安装。
 
 ## Gvtt 已验证的工具经验
 
@@ -95,4 +96,4 @@ godot-ai-devkit/
 
 ## 许可证
 
-本包原创内容使用 MIT License（MIT 许可证）。`references/godot-4.7-docs/` 中的 Godot 文档使用 CC BY 3.0（知识共享署名 3.0），详见 `THIRD_PARTY_NOTICES.md`。
+本包原创内容使用 MIT License（MIT 许可证）。GodotPrompter v1.12.0 使用 MIT License；`references/godot-4.7-docs/` 中的 Godot 文档使用 CC BY 3.0（知识共享署名 3.0），详见 `THIRD_PARTY_NOTICES.md`。

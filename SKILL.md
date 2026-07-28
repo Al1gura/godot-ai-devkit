@@ -1,6 +1,6 @@
 ---
 name: godot-ai-devkit
-description: 以真实玩家或用户目标为起点开发、修改、调试和审核 Godot 4 项目；主动复用项目现有实现、Godot 官方能力、插件和开源方案；按任务加载项目启动、GDScript、场景数据、界面输入、调试、测试、审查、2D 或 3D 基础技能；使用随包 Godot 4.7 离线文档核对 API，并按风险验证结果。用于任何需要创建或修改 Godot 项目、代码、场景、资源、界面、交互或架构的任务。
+description: 以真实玩家或用户目标为起点开发、修改、调试和审核 Godot 4 项目；主动复用项目现有实现、Godot 官方能力、插件和开源方案；从随包 GodotPrompter 的 54 个专业 Skill 中按任务选择项目启动、GDScript、架构、玩法、界面、输入、调试、测试、2D、3D、发布或其他能力；使用 Godot 4.7 离线文档核对 API，并按风险验证结果。用于任何需要创建或修改 Godot 项目、代码、场景、资源、界面、交互或架构的任务。
 ---
 
 # Godot AI Development
@@ -32,23 +32,14 @@ description: 以真实玩家或用户目标为起点开发、修改、调试和�
 
 需要测试框架、运行态接口、代码检查或功能插件时，读取 README 的“Gvtt 已验证的工具经验”。先检查目标项目已有能力，只在当前任务需要时说明理由并取得用户授权；不要默认安装 Gvtt 出现过的全部工具。
 
-## 按任务读取基础技能
+## 按任务选择专业技能
 
-只读取与当前任务相关的技能：
-
-| 任务 | 技能 |
-|---|---|
-| 新建、接手或初始化项目 | [godot-project-start](skills/godot-project-start/SKILL.md) |
-| 编写或修改 GDScript | [godot-gdscript](skills/godot-gdscript/SKILL.md) |
-| 设计场景树、资源、所有权和持久化边界 | [godot-scene-data](skills/godot-scene-data/SKILL.md) |
-| Control 界面、输入、焦点、拖放、滚动和多分辨率 | [godot-ui-input](skills/godot-ui-input/SKILL.md) |
-| 定位错误、缓存、时序或运行态问题 | [godot-debugging](skills/godot-debugging/SKILL.md) |
-| 编写和运行自动测试 | [godot-testing](skills/godot-testing/SKILL.md) |
-| 审核 Godot 代码或完成前检查 | [godot-code-review](skills/godot-code-review/SKILL.md) |
-| 2D 专属系统 | [godot-2d](skills/godot-2d/SKILL.md) |
-| 3D 专属系统 | [godot-3d](skills/godot-3d/SKILL.md) |
-
-一个任务可以读取多个技能，但不要预先加载全部技能。
+1. 先完整读取 [GodotPrompter 技能目录](skills/using-godot-prompter/SKILL.md)，用其中的任务映射确认当前需要哪些 Skill。
+2. 只读取当前任务直接相关的 Skill 正文；一个任务可以组合多个，但不要预先加载全部 54 个。
+3. 项目已有更具体的 Skill、合同和实现时优先使用；GodotPrompter 提供领域方法，不覆盖项目事实。
+4. 第三方插件 Skill（例如 LimboAI、Beehave、Dialogue Manager、Popochiu、Phantom Camera）只有项目确实采用对应插件时才读取，不能把 Skill 的存在当成安装插件的授权。
+5. GodotPrompter 面向 Godot 4.3+ 并包含分版本说明。项目使用 4.7 时，最终 API 结论仍须由随包 4.7 官方离线文档确认；其他版本使用对应版本官方资料。
+6. GodotPrompter 的测试 Skill 会介绍 GUT 和 gdUnit4，但目标项目已有测试方式时不得擅自替换；是否引入外部测试框架按 README 的工具经验和用户授权决定。
 
 ## 使用离线文档
 

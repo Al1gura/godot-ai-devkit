@@ -1,48 +1,147 @@
 ---
 name: godot-testing
-description: 为 Godot 4 项目建立、编写、运行或审核自动测试时使用；覆盖框架选择、红灯到绿灯、纯逻辑、场景生命周期、真实 Viewport 输入、渲染、隔离用户数据、稳定性和程序验证与产品验收的边界。
+description: Use when writing tests for Godot projects — TDD workflow with GUT and gdUnit4, covers both GDScript and C#
 ---
 
 # Godot Testing
 
-## 自动测试是什么
+This skill covers test-driven development (TDD) for Godot 4.3+ projects using GUT (Godot Unit Testing) and gdUnit4. It includes framework selection, full RED-GREEN-REFACTOR examples, test structure, running tests in CI, and common testing patterns.
 
-让程序重复执行一组输入，并自动比较实际结果和预期结果。例如装备武器后检查当前武器、弹药和保存重开结果；以后修改其他代码时，同一测试能立即发现旧功能是否被破坏。
+> **Related skills:** **godot-code-review** for review checklists, **dependency-injection** for test-friendly architecture, **export-pipeline** for CI/CD test automation.
 
-自动测试证明确定性行为，不证明按钮好找、文案好懂或流程顺手。
+## Framework Selection
 
-## 先使用项目已有框架
+| Feature               | GUT                              | gdUnit4                           |
+|-----------------------|----------------------------------|-----------------------------------|
+| Language              | GDScript-first, limited C#       | GDScript + C# (first-class)       |
+| Install               | AssetLib or git submodule        | AssetLib or git submodule         |
+| Editor integration    | Built-in GUT panel               | Built-in inspector + panel        |
+| Mocking               | `double()` / `stub()` API        | `mock()` / `spy()` API            |
+| Scene testing         | `add_child_autofree()`           | `auto_free()` + scene runner      |
+| CI support            | `gut_cmdln.gd` CLI script        | `gdunit4_runner` CLI script       |
+| C# support            | Minimal (GDScript wrappers only) | Native C# assertions + lifecycle  |
+| Maturity              | Established (Godot 3 + 4)        | Godot 4 focused, actively updated |
+| Best for              | Pure GDScript projects           | Mixed GDScript/C# or C#-only      |
 
-- 检查现有 `tests/`、插件、命令、持续集成和项目规则。
-- 已使用 GUT、gdUnit4、自制测试场景或命令行测试时，沿用现有方式。
-- 新项目只在需要持续维护的确定性逻辑出现时选择框架；一次性视觉原型不必先搭完整测试平台。
-- 选择框架前确认 Godot 版本、维护状态、许可证、命令行和目标平台支持。
+**Rule of thumb:** Use GUT for GDScript-only projects. Use gdUnit4 for C# projects or when you need first-class C# support and scene runner utilities.
 
-## 测试真实合同
+---
 
-- 测试用户或调用方可观察的输入与结果，不把私有方法数量、节点顺序或临时实现细节写死。
-- 缺陷修复先写一个能稳定复现问题的失败测试，再修改代码并看到它通过。
-- 覆盖最重要的正常路径、关键边界、错误路径和保存重开；不为数字好看堆无意义断言。
-- 一条测试失败时应能看出哪个合同坏了，避免一个巨大测试串联所有系统后只报模糊失败。
+## TDD Workflow: RED-GREEN-REFACTOR
 
-## 分层
+The standard Test-Driven Development cycle: write a failing test (RED), write minimal code to pass (GREEN), then refactor without breaking the test. Each step has its own discipline — don't skip RED (you'll write tests that pass trivially), and don't skip REFACTOR (technical debt compounds).
 
-- 纯逻辑：直接测试输入、输出和状态变化，速度快、数量可以多。
-- 场景/节点：测试进入树、`_ready()`、信号、释放、重复进入和场景切换。
-- 界面输入：通过 Viewport（视口）推送真实坐标事件，同时检查预期动作和禁止副作用。
-- 渲染/窗口：放入独立原生可见测试，不让无窗口环境等待只有真实渲染才产生的事件。
-- 端到端：覆盖少量可信用户旅程，不用它代替所有小型确定性测试。
+> See [references/tdd-workflow.md](references/tdd-workflow.md) for a worked GDScript + C# example walking through all three steps on a HealthComponent.
 
-## 隔离和稳定性
+---
 
-- 使用临时目录、独立用户目录或内存夹具；绝不把正式存档、素材库和导入资源当测试数据。
-- 固定随机种子、时间来源和外部依赖；异步测试等待明确条件，不依赖随意延时。
-- 每条测试创建自己的状态并负责清理，不依赖执行顺序和上一个测试残留。
-- 超时、崩溃和没有断言都算测试问题，不能被统计成通过。
-- 自动测试只停止自己启动的运行实例和进程。
+## Test Directory Structure
 
-## 完成证据
+```
+res://
+├── src/
+│   └── components/
+│       ├── health_component.gd
+│       └── HealthComponent.cs
+└── tests/
+    ├── unit/
+    │   ├── test_health_component.gd      # GUT: test_ prefix required
+    │   └── HealthComponentTest.cs        # gdUnit4 C#: [TestSuite] attribute
+    ├── integration/
+    │   ├── test_player_scene.gd
+    │   └── PlayerSceneTest.cs
+    └── gut_config.json                   # GUT configuration (optional)
+```
 
-报告测试命令、测试范围、通过/失败/跳过结果和隔离数据位置。已有有效回归不为形式全量重跑；改变共享合同、输入分发、生命周期或持久化时运行直接相关的相邻测试。
+### Naming conventions
 
-用户产品验收只验证可发现性、操作负担、恢复和主观体验，不让用户代替程序寻找普通逻辑缺陷。
+| Framework | GDScript file       | C# file              | Test method prefix/attribute |
+|-----------|---------------------|----------------------|------------------------------|
+| GUT       | `test_*.gd`         | N/A                  | `func test_*()`              |
+| gdUnit4   | `test_*.gd`         | `*Test.cs`           | `func test_*()` / `[TestCase]` |
+
+---
+
+## Running Tests
+
+Both frameworks ship a CLI runner. **GUT:** `addons/gut/gut_cmdln.gd` invoked via `godot --headless --path . -s addons/gut/gut_cmdln.gd`. **gdUnit4:** `--add-gdunit-test-runner` argument, or via the editor "GdUnit Tests" dock. CI: tag-triggered or PR-triggered GitHub Action that installs Godot, runs the suite, exits non-zero on failure.
+
+> See [references/running-tests.md](references/running-tests.md) for full GUT and gdUnit4 CLI invocations + a copy-pasteable GitHub Actions workflow.
+
+---
+
+## Testing Patterns
+
+Four common patterns: **scenes with nodes** (instantiate via `add_child` in `before_each`, free in `after_each`), **signal testing** (assert that emitting works and connect-then-emit fires), **mocking/doubling** (gdUnit4 `Mock<T>` or hand-rolled fakes via `@export` injection), **async** (await yields, signals, frames in tests).
+
+> See [references/testing-patterns.md](references/testing-patterns.md) for full code on each pattern (GDScript + C# where applicable).
+
+---
+
+## Common Assertions
+
+### GUT assertions
+
+| Assertion                                    | Description                        |
+|----------------------------------------------|------------------------------------|
+| `assert_eq(actual, expected)`                | Equality                           |
+| `assert_ne(actual, expected)`                | Not equal                          |
+| `assert_true(value)`                         | Is truthy                          |
+| `assert_false(value)`                        | Is falsy                           |
+| `assert_null(value)`                         | Is null                            |
+| `assert_not_null(value)`                     | Is not null                        |
+| `assert_gt(actual, expected)`                | Greater than                       |
+| `assert_lt(actual, expected)`                | Less than                          |
+| `assert_gte(actual, expected)`               | Greater than or equal              |
+| `assert_lte(actual, expected)`               | Less than or equal                 |
+| `assert_has(collection, item)`               | Collection contains item           |
+| `assert_does_not_have(collection, item)`     | Collection does not contain item   |
+| `assert_string_contains(str, sub)`           | String contains substring          |
+| `assert_almost_eq(actual, expected, margin)` | Float equality within margin       |
+| `assert_signal_emitted(obj, signal_name)`    | Signal was emitted                 |
+| `assert_signal_not_emitted(obj, signal_name)`| Signal was not emitted             |
+
+### gdUnit4 assertions (GDScript + C#)
+
+| GDScript                                           | C#                                              | Description                     |
+|----------------------------------------------------|-------------------------------------------------|---------------------------------|
+| `assert_that(val).is_equal(exp)`                   | `AssertThat(val).IsEqual(exp)`                  | Equality                        |
+| `assert_that(val).is_not_equal(exp)`               | `AssertThat(val).IsNotEqual(exp)`               | Not equal                       |
+| `assert_that(val).is_true()`                       | `AssertThat(val).IsTrue()`                      | Is true                         |
+| `assert_that(val).is_false()`                      | `AssertThat(val).IsFalse()`                     | Is false                        |
+| `assert_that(val).is_null()`                       | `AssertThat(val).IsNull()`                      | Is null                         |
+| `assert_that(val).is_not_null()`                   | `AssertThat(val).IsNotNull()`                   | Is not null                     |
+| `assert_that(val).is_greater(exp)`                 | `AssertThat(val).IsGreater(exp)`                | Greater than                    |
+| `assert_that(val).is_less(exp)`                    | `AssertThat(val).IsLess(exp)`                   | Less than                       |
+| `assert_that(val).is_between(min, max)`            | `AssertThat(val).IsBetween(min, max)`           | In range (inclusive)            |
+| `assert_that(arr).contains([a, b])`                | `AssertThat(arr).Contains(a, b)`                | Array contains elements         |
+| `assert_that(str).contains("sub")`                 | `AssertThat(str).Contains("sub")`               | String contains substring       |
+| `assert_that(val).is_approximately(exp, margin)`   | `AssertThat(val).IsApproximately(exp, margin)`  | Float within margin             |
+| `assert_signal(mon).is_emitted("name")`            | `AssertSignal(mon).IsEmitted("name")`           | Signal emitted                  |
+
+---
+
+## What NOT to Test
+
+Avoid testing things that add noise without catching real bugs:
+
+- **Godot engine internals** — do not assert that `Node.add_child()` works or that `@export` variables show up in the editor
+- **Private implementation details** — test behavior through the public API; if a refactor breaks a test that covers only private state, the test is wrong
+- **Visual/rendering output** — pixel-level rendering results are brittle; test the data driving the visuals instead
+- **Timing-sensitive floats without margins** — use `assert_almost_eq` / `IsApproximately` for physics values
+- **One-liners that wrap a built-in** — a property getter that just returns a field needs no test
+- **Every possible invalid input** — test the documented contract, not every imaginable misuse
+
+---
+
+## Checklist
+
+- [ ] Each test file matches the naming convention for the chosen framework (`test_*.gd` / `*Test.cs`)
+- [ ] Tests extend the correct base class (`GutTest` / `GdUnit4.GdUnitTestSuite`)
+- [ ] Nodes added to the scene tree use `add_child_autofree` or `auto_free` — never manual `queue_free()`
+- [ ] Signals are watched before the action that triggers them
+- [ ] Mocks/doubles are used for external dependencies, not for the unit under test
+- [ ] Each test covers exactly one behavior (one logical assertion per test)
+- [ ] CI workflow runs tests headlessly on every push and PR
+- [ ] Flaky async tests use explicit timeouts, not arbitrary sleep durations
+- [ ] Tests pass before merging (RED is only acceptable while actively implementing)
