@@ -1,10 +1,10 @@
 # Godot AI DevKit
 
-一套可以直接交给 AI 阅读的 Godot 开发规则与经验包。
+一套可以直接放进 Godot 项目、交给 AI 阅读的开发能力包。它把 Gvtt 长期开发中可跨项目复用的产品判断、开发要求、错误经验、Godot 代码规范、基础细分 Skill（技能）和 Godot 4.7 离线文档整理在一起。
 
-它不是 Godot 插件、安装器或完整的“开发环境”，不会替你安装编辑器、运行接口、测试框架或 AI 客户端。它解决的是更核心的问题：让不同 AI 在进入一个 Godot 项目后，知道如何从真实用户需求出发、优先复用成熟方案、遵守项目代码规范，并用合适的证据验证结果。
+它不依赖 Codex、Claude、Gemini 或其他特定 AI，也不是安装器、Godot 插件或运行工具。
 
-## 包含什么
+## 里面有什么
 
 ```text
 godot-ai-devkit/
@@ -12,45 +12,57 @@ godot-ai-devkit/
 ├── SKILL.md
 ├── AGENTS.template.md
 ├── LICENSE
-└── references/
-    ├── product_first.md
-    ├── reuse_first.md
-    ├── godot_code_style.md
-    ├── workflow.md
-    ├── verification.md
-    └── debugging.md
+├── THIRD_PARTY_NOTICES.md
+├── references/
+│   ├── product_first.md
+│   ├── reuse_first.md
+│   ├── godot_code_style.md
+│   ├── workflow.md
+│   ├── verification.md
+│   ├── debugging.md
+│   └── godot-4.7-docs/       Godot 4.7 英文离线文档
+└── skills/
+    ├── godot-project-start/
+    ├── godot-gdscript/
+    ├── godot-scene-data/
+    ├── godot-ui-input/
+    ├── godot-debugging/
+    ├── godot-testing/
+    ├── godot-code-review/
+    ├── godot-2d/
+    └── godot-3d/
 ```
 
-- `SKILL.md`：AI 的主入口，定义完整工作方式，并告诉 AI 何时读取哪份参考文档。
-- `AGENTS.template.md`：适合合并到项目长期指令中的精简规则。
-- `references/`：产品思考、方案复用、代码规范、工作流程、验证和排错经验。
+- 根 `SKILL.md` 是总入口，负责产品判断、现成方案优先、最小实现、验证和日志。
+- `skills/` 是按任务读取的基础 Godot 技能，不让无关领域占用 AI 上下文。
+- `references/` 保存开发要求、代码规范、错误经验和精确版本文档。
+- `AGENTS.template.md` 用于形成新项目自己的长期规则。
 
-## 怎么使用
+## 新项目最短用法
 
-最通用的方式不依赖任何特定 AI：
+1. 把整个 `godot-ai-devkit` 文件夹放入 Godot 项目根目录。
+2. 复制 `AGENTS.template.md` 为项目根目录的 `AGENTS.md`，填写项目定位、目标玩家、核心体验、不做范围、平台和 Godot 精确版本。
+3. 对 AI 说：
 
-1. 把整个文件夹放进 Godot 项目，或作为附件交给 AI。
-2. 对 AI 说：
+   > 先完整读取 `godot-ai-devkit/SKILL.md` 和项目根目录 `AGENTS.md`。根据当前任务读取 `SKILL.md` 指定的细分技能；本项目使用 Godot 4.7 时，不确定 API 必须搜索随包离线文档。检查现有项目后再开始，不要覆盖已有规则。
 
-   > 先完整阅读 `godot-ai-devkit/SKILL.md`，按里面的规则处理这个 Godot 项目；需要时再读取它引用的参考文档。项目已有规则优先，不要覆盖现有文件。
+不支持 Skill（技能）自动发现的 AI 也能把这些文件当普通指令读取。支持技能目录的 AI 可以把根技能和需要的 `skills/*` 分别安装到自己的技能目录，但这不是使用本包的前提。
 
-3. 如果希望规则在项目中长期生效，把 `AGENTS.template.md` 中适用的内容合并进项目自己的 `AGENTS.md` 或该 AI 支持的项目指令文件。
+## 能继承什么
 
-支持 Skill（技能）的 AI 可以把本目录直接安装为技能；不支持 Skill 的 AI 也可以把 `SKILL.md` 当普通项目指令读取。不同 AI 对技能目录和自动触发的支持并不统一，因此本包不宣称“一键适配所有 AI”。
+- 从玩家或用户真实目标出发，避免把简单功能做成复杂系统和多余界面；
+- 主动寻找项目现有实现、Godot 官方能力、插件和开源方案；
+- Godot 4 的版本安全、代码、场景、数据、界面和输入规范；
+- 调试、自动测试、运行态、原生窗口和用户产品验收的边界；
+- Gvtt 中已经证明能跨项目复用的失败模式和防错方法；
+- Godot 4.7 API（应用程序接口）与手册的离线查询能力。
 
-## 核心原则
+## 不能替项目决定什么
 
-1. 先确认玩家或用户到底要完成什么，再决定系统、数据和界面。
-2. 实现功能前主动寻找可复用方案，不等用户提醒“有没有现成的”。
-3. 优先级是：项目已验证实现 → Godot 官方能力与示例 → 维护中的插件和开源实现 → 自己编写。
-4. 项目已有规范优先；新代码默认清晰、静态类型化，但不为统一风格重写无关旧代码。
-5. 自动测试、运行态检查、真实窗口验证和用户产品验收分别证明不同事情，只按实际风险使用。
-6. 日志记录可交接的状态变化，不跟随“大阶段、小阶段、子任务”等人为拆分写流水账。
+本包不会自动知道新游戏的玩法、目标用户、数据结构、已选插件和历史决定，也不会把 Gvtt 的 CPR（《赛博朋克 RED》）规则、地图架构或测试直接搬进其他项目。新项目仍要完成 `AGENTS.md` 的项目定位，并为自己的功能编写自己的自动测试。
 
-## 适用范围
-
-适用于 Godot 4 项目的新功能、修复、重构、界面、资源处理、运行态排错和项目接手。项目自己的产品规则、目标 Godot 版本、目录结构和技术限制始终高于本包的通用建议。
+随包离线文档只对应 Godot 4.7。项目版本不一致时，不能用它证明该版本的 API；应改用目标精确版本的官方文档。
 
 ## 许可证
 
-MIT License。
+本包原创内容使用 MIT License（MIT 许可证）。`references/godot-4.7-docs/` 中的 Godot 文档使用 CC BY 3.0（知识共享署名 3.0），详见 `THIRD_PARTY_NOTICES.md`。
