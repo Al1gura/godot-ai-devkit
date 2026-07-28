@@ -16,9 +16,11 @@
 
 ## 开发套件入口
 
-- 开始 Godot 工作前读取 `godot-ai-devkit/SKILL.md`。
+- AI 接手项目后先读取 `godot-ai-devkit/README.md`，再按 README 进入总技能；用户不需要管理、复制或改名开发包内部文件。
+- 本文件由 AI 根据项目事实创建或合并；已有项目规则优先，不得用模板覆盖。
 - 根据总技能的任务表，只读取当前需要的 `godot-ai-devkit/skills/*/SKILL.md`，不要一次加载全部。
 - 项目使用 Godot 4.7 时，不确定 API 必须搜索 `godot-ai-devkit/references/godot-4.7-docs/`；其他版本使用匹配版本官方资料，不能拿 4.7 文档证明不同版本行为。
+- 测试框架、运行态接口和插件按 README 的工具表评估；先检查项目现状，说明当前任务为什么需要，并在安装外部工具前取得用户授权，不得默认全部安装。
 
 ## 产品和范围
 
