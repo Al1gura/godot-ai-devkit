@@ -454,13 +454,13 @@ private void OnEnemyDied()
 ## 9. Architecture, State, and Trust Boundaries
 
 - [ ] The composition root only assembles modules and coordinates public contracts; extracted modules do not call back into its private methods by string, traverse across ownership boundaries, or keep mutable access to another module's internals.
-- [ ] A feature has one natural owner. If one change adds unrelated fields, callbacks, configuration, and tests across several modules, review the boundary instead of merely splitting files or adding another manager.
+- [ ] A feature has one natural owner. Persistent data separates immutable definitions, mutable instances, authoritative records, and rebuildable snapshots/caches; if one change spreads unrelated fields and callbacks across modules, review the boundary instead of merely splitting files.
 - [ ] Generic layers do not contain constants, enums, or decisions from a specific ruleset, content pack, platform, or mod. Optional behavior enters through the narrowest useful contract.
 - [ ] Multi-step user actions validate a complete candidate before committing, or provide reliable rollback. Loading, switching, and importing preserve the last valid state until the replacement is fully valid.
 - [ ] Undo, recompute, retry, and async completion verify an operation ID, version, state fingerprint, or equivalent precondition before overwriting state that may have changed later.
-- [ ] Public APIs do not return mutable live collections or objects that let callers bypass validation; expose snapshots, read-only views, or constrained mutation methods.
+- [ ] Public APIs do not return mutable definitions, live collections, or objects that let callers bypass validation; expose copies, snapshots, read-only views, or constrained mutation methods. Persistent relationships use stable IDs rather than names, paths, node names, or ordering.
 - [ ] Untrusted paths are normalized and resolved before checking containment. Untrusted `.tscn`, `.tres`, `.res`, scripts, and native extensions are treated as code/resource trust boundaries, not plain data.
-- [ ] Durable writes use a temporary file, close and re-read validation, then replacement and risk-appropriate backup. Parse failure never silently becomes empty state. Multi-file imports stage and validate everything before registration.
+- [ ] Durable writes use temporary-file validation, replacement, and risk-appropriate backup. Schemas migrate copied candidates one version at a time; future versions, source conflicts, missing definitions, and parse failure are not silently rewritten, guessed, dropped, or presented as supported. Multi-file imports validate the whole graph before registration.
 - [ ] Integration and end-to-end tests enter through public or product-facing entry points. Direct private calls, internal node-name lookup, and synthetic button signals count only as local tests.
 - [ ] Numeric architecture limits are project-specific regression signals derived from a real baseline, not universal line, node, function, or parameter-count rules.
 

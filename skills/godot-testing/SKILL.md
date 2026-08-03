@@ -145,6 +145,7 @@ Avoid testing things that add noise without catching real bugs:
 - [ ] Integration and end-to-end tests enter through the public API or formal product scene; internal node lookup and synthetic button signals are not presented as full-flow evidence
 - [ ] Tests that touch `user://` use an isolated user-data directory and never read or mutate real player data
 - [ ] Multi-step commits, undo/recompute, imports, and persistence test success plus relevant failure, conflict, corrupt-input, and no-partial-state cases
+- [ ] Persistent-data tests cover immutable definitions, independent instances, stable IDs across rename/reorder, duplicate and dangling references, missing definitions, repeat-safe migrations, and future-version no-rewrite behavior as applicable
 - [ ] An ongoing project exposes one repeatable test command; CI runs it when the project's collaboration or release risk warrants CI
 - [ ] Project-specific architecture regression checks run with related changes; universal file-size or function-count limits are not invented
 - [ ] Flaky async tests use explicit timeouts, not arbitrary sleep durations

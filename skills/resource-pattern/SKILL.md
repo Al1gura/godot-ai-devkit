@@ -1,6 +1,6 @@
 ---
 name: resource-pattern
-description: Use when creating data containers in Godot — custom Resources for configuration, items, stats, and editor integration
+description: Use when creating Godot data containers, immutable definitions, per-instance state, catalogs, configuration, items, stats, or editor-integrated Resources — covers sharing, ownership, stable references, and safe persistence boundaries
 ---
 
 # Resource Pattern in Godot 4.3+
@@ -21,7 +21,7 @@ A `Resource` is a reference-counted data object that:
 - Can be nested inside other Resources and PackedScenes
 - Survives scene changes (unlike Node state, which is discarded on scene reload)
 
-Because Resources are shared by default, they are ideal for read-only data (item definitions, audio settings, ability blueprints). For per-instance mutable state, call `make_unique()` or `duplicate()` — see section 8.
+Because Resources are shared by default, they are ideal for read-only data (item definitions, audio settings, ability blueprints). For small local state, call `make_unique()` or `duplicate()` before mutation. For persistent catalogs or many owned objects, keep the shared definition immutable and store per-instance mutable state in a separate object keyed by a stable definition ID — see section 8.
 
 ---
 
@@ -141,7 +141,7 @@ The strongest use case: data-driven game content. Loot tables, enemy stats, abil
 
 ## 8. Sharing vs Unique
 
-By default, Resources are shared by reference. Two scenes referencing `res://items/sword.tres` see the SAME instance — mutating one mutates both. Use `.duplicate()` (shallow) or `.duplicate(true)` (deep) for instance-local state.
+By default, Resources are shared by reference. Two scenes referencing `res://items/sword.tres` see the SAME instance — mutating one mutates both. Treat catalog definitions as immutable. Use `.duplicate()` (shallow) or `.duplicate(true)` (deep) for simple instance-local state; for long-lived saves, prefer a separate instance record containing `instance_id`, stable `definition_id`, and mutable fields rather than duplicating the whole definition into every save.
 
 > See [references/sharing-vs-unique.md](references/sharing-vs-unique.md) for the full pattern (v1.6.0 C# parity preserved).
 
@@ -149,9 +149,9 @@ By default, Resources are shared by reference. Two scenes referencing `res://ite
 
 ## 9. Saving Custom Resources
 
-`ResourceSaver.save(resource, path)` writes to a `.tres` (text) or `.res` (binary) file. Use for save games (where the schema lives in code as a Resource subclass) instead of hand-rolled JSON when you want strong typing.
+`ResourceSaver.save(resource, path)` writes to a `.tres` (text) or `.res` (binary) file. It is appropriate for trusted developer-authored assets and tightly controlled local data. For user saves, removable content, mods, or formats requiring explicit schema migration and recovery, prefer a declared data format such as JSON or ConfigFile. Whichever format is chosen, use recoverable writes rather than overwriting the only valid copy directly.
 
-> See [references/saving-resources.md](references/saving-resources.md) for the full save/load pattern (GDScript + C#) and security caveat (never load `.tres` from untrusted sources — they execute embedded GDScript).
+> See [references/saving-resources.md](references/saving-resources.md) for the full save/load pattern (GDScript + C#) and security caveat: Godot resource formats are a trusted code/resource boundary and must not be loaded from untrusted sources.
 
 ---
 
@@ -333,10 +333,11 @@ public partial class EnemyConfig : Resource
 - [ ] All Inspector-editable fields use `@export` / `[Export]`
 - [ ] `@export_range` used on numeric fields with designer-tunable bounds
 - [ ] `@export_group` and `@export_category` used to organize Inspector layout for Resources with many fields
-- [ ] Per-instance mutable Resources are `duplicate()`-d in `_ready()`
-- [ ] Read-only shared Resources (definitions, blueprints) are **not** duplicated
+- [ ] Simple local per-instance mutable Resources are duplicated before mutation; persistent instances use separate instance state when appropriate
+- [ ] Read-only shared Resources (definitions, blueprints) are never mutated; callers receive copies or read-only projections when the API cannot enforce immutability
+- [ ] Persistent mutable instances store stable definition references and their own state instead of copying fixed definition fields
 - [ ] Game logic (per-frame updates, scene queries) lives in Nodes, not Resources
-- [ ] Large data sets split into focused single-responsibility Resources
+- [ ] Large data sets use cohesive composed Resources when that improves ownership or reuse; they are not split by field count alone
 - [ ] `.tres` used during development; `.res` considered for shipped production data
 - [ ] `ResourceSaver.save()` return value checked and errors reported with `push_error()`
 - [ ] `.tres` / `.res` files never loaded from untrusted external sources

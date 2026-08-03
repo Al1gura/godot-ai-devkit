@@ -7,7 +7,7 @@ Reference for `skills/resource-pattern/SKILL.md` — `ResourceSaver.save()` for 
 ---
 ## 9. Saving Custom Resources
 
-Use `ResourceSaver` to write Resources to disk at runtime (procedurally generated content, unlocked items, etc.).
+Use `ResourceSaver` to write trusted Resources to disk at runtime (for example, procedurally generated developer-controlled content). For user saves, removable catalogs, or mod data that needs explicit validation, migration, and recovery, prefer a declared data format such as JSON or ConfigFile.
 
 ### GDScript
 
@@ -52,10 +52,11 @@ SaveResource(myItem, "user://generated/custom_sword.res");
 
 | Format | Pros | Cons | Use When |
 |---|---|---|---|
-| `.tres` | Human-readable, diffable, debuggable | Larger file, slower to parse | Development, version control, user-editable files |
+| `.tres` | Human-readable, diffable, debuggable | Larger file, slower to parse | Development, version control, trusted editor-authored data |
 | `.res` | Compact binary, faster to load | Not human-readable | Production builds, shipped game data |
 
-> **Security:** Never load `.tres` or `.res` files from untrusted sources (user uploads, downloaded mods). They can execute embedded GDScript. Use JSON for user-controlled data.
+> **Security:** Treat `.tres` and `.res` as trusted Godot resource formats, not plain data. Loading them may resolve scripted classes and related resources. Never load them directly from untrusted uploads or downloaded mods; use a declared and validated data format for untrusted content.
+
+For irreplaceable data, do not save directly over the only valid file. Write a temporary file, close and re-read it, validate the decoded resource, then replace the target with a risk-appropriate backup and recovery path.
 
 ---
-

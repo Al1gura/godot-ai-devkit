@@ -9,6 +9,8 @@ Reference for `skills/save-load/SKILL.md` — incremental migration from older s
 
 Always store a `version` integer in every save file. Apply migrations incrementally so any old save can be brought forward to the current format regardless of how many versions it has missed.
 
+The snippets below illustrate field transformations only. A production loader must first deep-copy the source, reject `version > CURRENT_VERSION` without changing it, run exactly one `vN → vN+1` transformation at a time, validate each candidate, and replace or write the authoritative state only after the full chain succeeds.
+
 ```gdscript
 func _migrate(data: Dictionary) -> Dictionary:
 	var version: int = data.get("version", 0)
@@ -78,9 +80,11 @@ public partial class SaveMigrator : Node
 ```
 
 Key rules:
-- Each migration block is additive — it only adds or transforms, never removes data
-- Use `data.get("key", default)` defensively within migration blocks
-- The version field must be written back before returning
+- Give each independently stored format a discriminator plus an integer schema version; changing field meaning requires a version bump
+- Migrate a deep copy step by step and validate after every step; failure preserves the original bytes and current live state
+- Reject future versions without rewriting, downgrading, or treating them as empty data
+- Make repeat loading stable: an already migrated record must not create duplicates, charge costs again, or receive new IDs
+- Preserve unknown or unavailable user state when possible; never infer identity from display names, paths, or array positions
+- Use `data.get("key", default)` only where the migration contract defines that default; do not use defaults to hide corruption
 
 ---
-

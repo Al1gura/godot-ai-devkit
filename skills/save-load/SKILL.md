@@ -1,6 +1,6 @@
 ---
 name: save-load
-description: Use when implementing save/load systems — ConfigFile, JSON, Resource serialization, save game architecture
+description: Use when implementing persistent game data, save/load systems, content catalogs, schemas, or migrations — covers ownership, stable identity, ConfigFile, JSON, Resource serialization, compatibility, and recoverable writes
 ---
 
 # Save / Load Systems in Godot 4.3+
@@ -64,15 +64,26 @@ For larger games, attach a `SaveableComponent` to each persistent node. Each com
 
 ---
 
-## 6. Version Migration
+## 6. Data Ownership and Identity
 
-Save files outlive the schema that wrote them. Always include `"version": <int>` at the top of the saved Dictionary; on load, switch on the version and migrate older saves forward incrementally (`v1 → v2 → v3 → current`). Never break old saves — always migrate.
+- Separate immutable definitions/templates from mutable instances. An instance stores a stable definition ID plus only its own mutable state; it does not copy fixed catalog fields.
+- Persist authoritative relationships and irreducible deltas. Rebuild UI models, indexes, summaries, effective stats, and other derived snapshots instead of saving a second truth.
+- Use stable opaque IDs for entities and references. Display names, resource paths, node names, and array positions may change and are not identities.
+- Validate the whole candidate graph before replacing live state: duplicate IDs, dangling references, illegal ownership/cardinality, and unsupported cycles are data errors.
+- Decide explicitly whether copy/import preserves identity or creates a new identity. Never infer identity from matching names.
+- Classify references as required or optional/removable. A missing required definition rejects the candidate load; missing optional content preserves the opaque instance and state as read-only/unavailable until it can resolve again. Neither case silently drops user-owned state and saves the loss.
+
+---
+
+## 7. Version Migration
+
+Save files outlive the schema that wrote them. Give each independently stored format a discriminator and integer schema version. Migrate older data on a deep-copied candidate one step at a time (`v1 → v2 → v3 → current`), validating each result and writing only after all steps succeed. Reject future versions without rewriting or downgrading them. Do not change a field's meaning without a version bump, and do not invent missing identity from display names or positions.
 
 > See [references/version-migration.md](references/version-migration.md) for the full migration helper pattern.
 
 ---
 
-## 7. Reliable Commit and Import Boundaries
+## 8. Reliable Commit and Import Boundaries
 
 - Build and validate the complete candidate state before replacing the current in-memory state. A failed load or map/profile switch must leave the last valid state usable.
 - Write durable data to a temporary file in the destination directory, close it, re-read and validate it, then replace the target. Keep a last-known-good backup when loss would be costly. Never interpret parse or version failure as an empty save and overwrite the original.
@@ -81,10 +92,13 @@ Save files outlive the schema that wrote them. Always include `"version": <int>`
 
 ---
 
-## 8. Implementation Checklist
+## 9. Implementation Checklist
 
-- [ ] Use ConfigFile for settings, JSON for game saves (not Resources)
+- [ ] Use ConfigFile for settings and prefer JSON for user-controlled or explicitly migrated saves; use Resources only for trusted, tightly controlled data
 - [ ] Every save file includes a `version` integer field
+- [ ] Independently stored formats include a format discriminator and explicit unknown-field policy
+- [ ] Persistent references use stable IDs independent of names, paths, node names, and ordering
+- [ ] Definitions, mutable instances, authoritative records, and derived caches have distinct ownership
 - [ ] Save path uses `user://`, never `res://`
 - [ ] Call `DirAccess.make_dir_recursive_absolute()` before writing saves
 - [ ] Vector2/Vector3 serialized as separate `x`/`y`/`z` floats (JSON has no Vector type)
@@ -94,6 +108,8 @@ Save files outlive the schema that wrote them. Always include `"version": <int>`
 - [ ] External paths are resolved and confirmed inside an allowed root before reading, copying, replacing, or deleting
 - [ ] Multi-file imports stage and validate all required content before updating their index
 - [ ] `_migrate()` handles every version from 0 to current, applied incrementally
+- [ ] Migration runs on a deep copy, validates each step, is stable on repeat load, and never rewrites a future version
+- [ ] Missing definitions and unsupported legacy state are preserved or explicitly rejected, never silently discarded
 - [ ] Resource files (.tres/.res) are never used for player-controlled save data
 - [ ] `get_save_slots()` and `delete_save()` helpers exist for UI slot management
 - [ ] Saveable nodes use stable IDs that do not change between sessions

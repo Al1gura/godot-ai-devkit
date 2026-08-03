@@ -1,6 +1,6 @@
 ---
 name: inventory-system
-description: Use when building inventory systems — Resource-based items, slot management, stacking, and UI binding
+description: Use when building inventory systems — immutable item definitions, independent owned instances, stable serialization, slot management, stacking, equipment, and UI binding
 ---
 
 # Inventory Systems in Godot 4.3+
@@ -54,6 +54,10 @@ All examples target Godot 4.3+ with no deprecated APIs. GDScript is shown first,
 ## 2. ItemData Resource
 
 Define items as Resources so they live in `.tres` files, are shareable across scenes, and benefit from full editor integration.
+
+Treat `ItemData` as an immutable definition. Quantity-only stacks may save `item_id + quantity`; unique mutable equipment needs its own stable `instance_id` and state (durability, ammo, attachments, upgrades, custom name) while continuing to reference the definition ID.
+
+For a session-only prototype with no save, removable content, or long-lived catalog, a local enum or validated key and transient quantities are enough. The stable persistence, registry, and migration requirements below apply only when inventory data must survive runs or content updates.
 
 ### GDScript
 
@@ -375,6 +379,8 @@ public partial class InventorySlot : RefCounted
 
 ## 8. Implementation Checklist
 
+Apply persistence and registry items only when the inventory survives runs or references a long-lived/removable catalog.
+
 - [ ] `ItemData` extends `Resource` with a stable `id` string set in the Inspector
 - [ ] `ItemData` files live under `res://items/` and are committed to version control
 - [ ] `Inventory.add_item()` returns leftover count; callers handle a full inventory
@@ -383,7 +389,9 @@ public partial class InventorySlot : RefCounted
 - [ ] Equipment slots keyed by `SlotType` enum, not by string, to catch typos at compile time
 - [ ] `Equipment.get_total_stat()` is called when stats are needed, not cached unless profiling demands it
 - [ ] Serialization stores `id + quantity` only — never full `ItemData` objects or resource paths
+- [ ] Unique mutable items have stable instance IDs and separate instance state; fixed definition fields are not copied into each save
 - [ ] `ItemRegistry` loads items at startup; all deserialization goes through it
+- [ ] Duplicate definition/instance IDs and dangling references are rejected; missing definitions do not silently erase owned items
 - [ ] Drag-and-drop swaps slot contents directly then emits `inventory_changed` once
 - [ ] `max_stack_size = 1` on `EQUIPMENT` and `KEY_ITEM` types to prevent stacking
 - [ ] All `push_error()` messages include the class name and method for easy tracing
@@ -406,7 +414,7 @@ Slot-grid UI: a `GridContainer` of `Panel` slot widgets, each rendering one `Inv
 
 ## 7. Serialization
 
-Persist Inventory + Equipment as a Dictionary keyed by item resource path (since ItemData lives at `res://items/<name>.tres`). Reload by `load(path)` and reconstructing the slot list. Version field gates migration on load.
+Persist Inventory + Equipment using stable item definition IDs, quantities, and—when an item has independent mutable state—stable instance IDs plus that state. Resource paths and display names are not persistent identity. Resolve through a validated registry; if a definition is missing, preserve the unresolved record or reject the candidate load without replacing the current inventory.
 
 > See [references/serialization.md](references/serialization.md) for the GDScript and C# save/load implementation with `version` field and ConfigFile / JSON variants.
 

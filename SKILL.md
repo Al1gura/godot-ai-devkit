@@ -42,7 +42,7 @@ MCP 是本开发包的运行态开发基线，按 `AGENTS.md` 检查冲突后配
 5. GodotPrompter 面向 Godot 4.3+ 并包含分版本说明。项目使用 4.7 时，最终 API 结论仍须由随包 4.7 官方离线文档确认；其他版本使用对应版本官方资料。
 6. GodotPrompter 的测试 Skill 会介绍 GUT 和 gdUnit4，但目标项目已有测试方式时不得擅自替换；是否引入外部测试框架按 README 的工具经验和用户授权决定。
 7. 新增或大改正式 UI 时，同时读取 [Godot UI](skills/godot-ui/SKILL.md) 与 [场景组织](skills/scene-organization/SKILL.md)：前者决定控件、布局和输入，后者决定 `.tscn` 组件边界。不能只学会创建控件，就把完整界面树写进控制器脚本。
-8. 新增独立能力、明显扩大既有能力、重构或审查架构时读取 [Godot 代码审查](skills/godot-code-review/SKILL.md)；涉及多步状态提交、撤销、导入或持久化时，同时读取 [Godot 测试](skills/godot-testing/SKILL.md) 和 [存档](skills/save-load/SKILL.md)。
+8. 新增独立能力、明显扩大既有能力、重构或审查架构时读取 [Godot 代码审查](skills/godot-code-review/SKILL.md)；涉及多步状态提交、撤销、导入、内容目录、数据迁移或持久化时，同时读取 [Godot 测试](skills/godot-testing/SKILL.md)、[存档](skills/save-load/SKILL.md) 和 [Resource 数据模式](skills/resource-pattern/SKILL.md)。物品目录与独立持有状态再读取 [库存系统](skills/inventory-system/SKILL.md)。
 
 ## 使用离线文档
 
@@ -68,6 +68,7 @@ references/godot-4.7-docs/
 8. 正式稳定界面先明确场景树和组件边界；具有独立职责、明显复杂度、复用或测试价值的区域优先创建 `.tscn`，小型紧耦合结构不机械拆分。脚本主要绑定数据与行为，动态列表优先实例化重复项场景模板，不在循环里重新拼整套控件。
 9. 完成前检查本次扩项迫使哪些模块改变：若组合根重新接收功能细节、子模块反向调用私有实现、通用层出现具体玩法常量，或无关模块同步增加字段与回调，先修正所有权和依赖方向；不以拆出文件或降低行数冒充解耦。
 10. 多步用户动作先验证完整候选再提交；撤销和重算先确认状态未被后续操作改变。外部路径必须解析后仍位于允许根目录，持久文件复读验证后再替换，批量导入全部成功后才登记。详细门禁见同目录 `AGENTS.md`。
+11. 长期游戏数据先区分只读定义、可变实例、正式记录和可重建快照／缓存；使用独立于名称、路径和顺序的稳定编号连接关系。旧版只在候选副本上逐级迁移，未来版本保持原样拒绝；缺失定义、来源冲突和未实现机械不得被静默删除、猜测或伪装成可用。
 
 通用代码要求见 [Godot 代码规范](references/godot_code_style.md)。
 

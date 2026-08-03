@@ -52,7 +52,7 @@ public partial class Enemy : CharacterBody3D
 
 **Guideline:**
 - Read-only data (item definitions, level config) — share freely, no duplication needed.
-- Mutable runtime state (current health, active buffs) — always `duplicate()` in `_ready()`.
+- Small, scene-local mutable runtime state — duplicate before mutation.
+- Persistent owned state (durability, ammo, upgrades, unique item state) — prefer a separate instance record with a stable definition reference instead of saving a duplicated definition.
 
 ---
-
