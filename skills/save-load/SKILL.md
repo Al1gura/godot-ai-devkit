@@ -20,7 +20,7 @@ Choose the right serialization strategy for your data type. All examples target 
 | Resource .tres    | Editor-integrated data          | Yes      | Yes            | **NOT secure — never load untrusted files** |
 | Resource .res     | Fast binary data                | No       | Yes            | **NOT secure — never load untrusted files** |
 
-> **Security warning:** Loading `.tres` or `.res` files executes arbitrary GDScript embedded in the resource. Never load Resource files from untrusted sources (user-uploaded files, downloaded mods). Use ConfigFile or JSON for user-generated save data.
+> **Security warning:** Treat `.tscn`, `.tres`, `.res`, scripts, and native extensions as trusted code/resource formats, not plain data. Loading or instantiating them may resolve scripted classes and run lifecycle code. Never load them directly from untrusted uploads or downloaded mods; use a declared, validated data format such as JSON or ConfigFile.
 
 ---
 
@@ -72,7 +72,16 @@ Save files outlive the schema that wrote them. Always include `"version": <int>`
 
 ---
 
-## 7. Implementation Checklist
+## 7. Reliable Commit and Import Boundaries
+
+- Build and validate the complete candidate state before replacing the current in-memory state. A failed load or map/profile switch must leave the last valid state usable.
+- Write durable data to a temporary file in the destination directory, close it, re-read and validate it, then replace the target. Keep a last-known-good backup when loss would be costly. Never interpret parse or version failure as an empty save and overwrite the original.
+- Normalize and resolve every external path, then verify the resolved path remains inside the allowed root. Reject traversal, unexpected absolute paths, and disallowed link targets.
+- Stage multi-file imports separately. Register them in the index only after every required file and checksum validates; on failure, remove the staged files and leave the old index and assets unchanged.
+
+---
+
+## 8. Implementation Checklist
 
 - [ ] Use ConfigFile for settings, JSON for game saves (not Resources)
 - [ ] Every save file includes a `version` integer field
@@ -80,6 +89,10 @@ Save files outlive the schema that wrote them. Always include `"version": <int>`
 - [ ] Call `DirAccess.make_dir_recursive_absolute()` before writing saves
 - [ ] Vector2/Vector3 serialized as separate `x`/`y`/`z` floats (JSON has no Vector type)
 - [ ] All file operations check return codes and call `push_error()` on failure
+- [ ] Durable writes use temporary-file, re-read validation, replacement, and risk-appropriate backup
+- [ ] Failed parsing/loading preserves the previous valid state and original file
+- [ ] External paths are resolved and confirmed inside an allowed root before reading, copying, replacing, or deleting
+- [ ] Multi-file imports stage and validate all required content before updating their index
 - [ ] `_migrate()` handles every version from 0 to current, applied incrementally
 - [ ] Resource files (.tres/.res) are never used for player-controlled save data
 - [ ] `get_save_slots()` and `delete_save()` helpers exist for UI slot management

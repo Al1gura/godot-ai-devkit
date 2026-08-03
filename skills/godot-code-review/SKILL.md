@@ -451,7 +451,22 @@ private void OnEnemyDied()
 
 ---
 
-## 9. Review Output Format
+## 9. Architecture, State, and Trust Boundaries
+
+- [ ] The composition root only assembles modules and coordinates public contracts; extracted modules do not call back into its private methods by string, traverse across ownership boundaries, or keep mutable access to another module's internals.
+- [ ] A feature has one natural owner. If one change adds unrelated fields, callbacks, configuration, and tests across several modules, review the boundary instead of merely splitting files or adding another manager.
+- [ ] Generic layers do not contain constants, enums, or decisions from a specific ruleset, content pack, platform, or mod. Optional behavior enters through the narrowest useful contract.
+- [ ] Multi-step user actions validate a complete candidate before committing, or provide reliable rollback. Loading, switching, and importing preserve the last valid state until the replacement is fully valid.
+- [ ] Undo, recompute, retry, and async completion verify an operation ID, version, state fingerprint, or equivalent precondition before overwriting state that may have changed later.
+- [ ] Public APIs do not return mutable live collections or objects that let callers bypass validation; expose snapshots, read-only views, or constrained mutation methods.
+- [ ] Untrusted paths are normalized and resolved before checking containment. Untrusted `.tscn`, `.tres`, `.res`, scripts, and native extensions are treated as code/resource trust boundaries, not plain data.
+- [ ] Durable writes use a temporary file, close and re-read validation, then replacement and risk-appropriate backup. Parse failure never silently becomes empty state. Multi-file imports stage and validate everything before registration.
+- [ ] Integration and end-to-end tests enter through public or product-facing entry points. Direct private calls, internal node-name lookup, and synthetic button signals count only as local tests.
+- [ ] Numeric architecture limits are project-specific regression signals derived from a real baseline, not universal line, node, function, or parameter-count rules.
+
+---
+
+## 10. Review Output Format
 
 Use this template when delivering a review:
 
@@ -472,28 +487,6 @@ Code quality, style, or maintainability concerns that should be addressed.
 What the code does well — reinforce good patterns.
 
 - <observation>
-
----
-Reviewed against: Godot 4.3+ best practices
-```
-
-### Example
-
-```
-## Code Review — PlayerController.gd
-
-### Critical
-- [ ] _process() line 42 — `get_node("HUD/HealthBar")` called every frame — **Suggested fix:** Cache with `@onready var _health_bar: ProgressBar = $HUD/HealthBar`
-- [ ] take_damage() line 67 — no type hints on parameter or return — **Suggested fix:** `func take_damage(amount: int) -> void:`
-
-### Improvements
-- [ ] Line 12 — signal `updateHealth` should be past tense — **Suggested fix:** Rename to `health_changed`
-- [ ] Line 8 — `var speed = 200` missing type hint — **Suggested fix:** `var speed: float = 200.0`
-
-### Positive
-- Signals are declared at the top of the file
-- Constants correctly use SCREAMING_SNAKE_CASE
-- `queue_free()` used correctly for cleanup
 
 ---
 Reviewed against: Godot 4.3+ best practices

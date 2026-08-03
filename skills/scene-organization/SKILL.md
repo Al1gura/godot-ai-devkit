@@ -13,9 +13,9 @@ A guide for structuring Godot 4.3+ scene trees: when to split, when to compose, 
 
 ## 1. Core Principle
 
-Scenes are building blocks. Each scene encapsulates exactly one concept — a player, an enemy, a health bar, a weapon. A scene should be understandable in isolation, reusable without modification, and replaceable without breaking its neighbors.
+Scenes are building blocks. Each scene should contain a cohesive responsibility and have a clear reason to change. It should be understandable in context and expose a stable boundary when reused or tested independently.
 
-> One scene = one responsibility. If you struggle to name a scene in two words or fewer, it is probably doing too much.
+> Scene boundaries are design decisions, not node-count or naming contests. Split when ownership becomes clearer and the reduced coupling outweighs the extra files and wiring.
 
 ---
 
@@ -147,7 +147,7 @@ Good candidates:
 ### Split a scene when:
 
 - **Reuse** — the sub-scene is needed in more than one parent scene
-- **Complexity** — the scene exceeds roughly 15 nodes; it is carrying more than one concern
+- **Complexity** — unrelated regions change for different reasons, or one region has meaningful independent lifecycle, reuse, or test value; node count alone is not a split rule
 - **Independence** — the sub-scene can be tested, previewed, or modified without opening its parent
 - **Team** — separate scenes reduce merge conflicts when multiple people work on the same feature
 
@@ -188,9 +188,9 @@ $HealthComponent.take_damage(10)
 $AnimationPlayer.play("hurt")
 ```
 
-### EventBus travels sideways (peer → peer)
+### Cross-owner communication (peer → peer)
 
-For communication between scenes that have no ancestor–descendant relationship — e.g., an enemy notifying the HUD — use an Autoload event bus. Emitting on the bus decouples sender from receiver entirely.
+For scenes with different owners, first let their nearest composition root mediate or inject a narrow interface. Use an Autoload event bus only for genuinely application-wide events with multiple independent listeners. A global bus removes direct references but can hide dependencies, ordering, and lifecycle; it is not the automatic answer to every sideways interaction.
 
 ```gdscript
 # Autoload: EventBus.gd
@@ -331,10 +331,10 @@ The level scene is a composition root — it owns the layout and spawns instance
 
 ## 6. Checklist
 
-- [ ] Each scene has exactly one responsibility, named in two words or fewer
-- [ ] Reusable components (`HealthComponent`, `StateMachine`, etc.) are separate `.tscn` files
-- [ ] No scene exceeds ~15 nodes without a documented reason to keep it together
+- [ ] Each scene has a cohesive owner and reason to change; unrelated responsibilities are not combined merely for convenience
+- [ ] Components with meaningful reuse, lifecycle, independent editing, or test value are separate `.tscn` files when the benefit exceeds wiring cost
+- [ ] Node count is treated as a review signal, not a universal split threshold
 - [ ] Children emit signals upward; parents call methods downward
-- [ ] Peer-to-peer communication uses an EventBus Autoload, not `get_parent()` chains
+- [ ] Cross-owner communication uses the nearest composition root, an injected narrow interface, or a justified application-wide EventBus
 - [ ] No `get_parent().get_parent()` or `get_node("../../SomeNode")` paths in code
 - [ ] Nodes are grouped into logical containers (`Visuals`, `Components`, `AI`, etc.) for readability

@@ -126,7 +126,7 @@ Four common patterns: **scenes with nodes** (instantiate via `add_child` in `bef
 Avoid testing things that add noise without catching real bugs:
 
 - **Godot engine internals** — do not assert that `Node.add_child()` works or that `@export` variables show up in the editor
-- **Private implementation details** — test behavior through the public API; if a refactor breaks a test that covers only private state, the test is wrong
+- **Private implementation details as integration evidence** — direct private calls can isolate a small unit, but they do not prove that the public API, formal scene entry, input propagation, or complete workflow works
 - **Visual/rendering output** — pixel-level rendering results are brittle; test the data driving the visuals instead
 - **Timing-sensitive floats without margins** — use `assert_almost_eq` / `IsApproximately` for physics values
 - **One-liners that wrap a built-in** — a property getter that just returns a field needs no test
@@ -142,6 +142,10 @@ Avoid testing things that add noise without catching real bugs:
 - [ ] Signals are watched before the action that triggers them
 - [ ] Mocks/doubles are used for external dependencies, not for the unit under test
 - [ ] Each test covers exactly one behavior (one logical assertion per test)
-- [ ] CI workflow runs tests headlessly on every push and PR
+- [ ] Integration and end-to-end tests enter through the public API or formal product scene; internal node lookup and synthetic button signals are not presented as full-flow evidence
+- [ ] Tests that touch `user://` use an isolated user-data directory and never read or mutate real player data
+- [ ] Multi-step commits, undo/recompute, imports, and persistence test success plus relevant failure, conflict, corrupt-input, and no-partial-state cases
+- [ ] An ongoing project exposes one repeatable test command; CI runs it when the project's collaboration or release risk warrants CI
+- [ ] Project-specific architecture regression checks run with related changes; universal file-size or function-count limits are not invented
 - [ ] Flaky async tests use explicit timeouts, not arbitrary sleep durations
 - [ ] Tests pass before merging (RED is only acceptable while actively implementing)
