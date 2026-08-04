@@ -1,6 +1,6 @@
 ---
 name: godot-ai-devkit
-description: 以真实玩家或用户目标为起点开发、修改、调试和审核 Godot 4 项目；配置并按需使用随包 Godot-MCP-Native 运行态工具；主动复用项目现有实现、Godot 官方能力、插件和开源方案；从随包 GodotPrompter 的 54 个专业 Skill 中按任务选择项目启动、GDScript、架构、玩法、界面、输入、调试、测试、2D、3D、发布或其他能力；使用 Godot 4.7 离线文档核对 API，并按风险验证结果。用于任何需要创建或修改 Godot 项目、代码、场景、资源、界面、交互或架构的任务。
+description: 用于创建、修改、调试或审核 Godot 4 项目，以及需要判断 Godot 技术方案、项目结构、运行态验证、开发文档或工作流程时。
 ---
 
 # Godot AI Development
@@ -35,7 +35,7 @@ MCP 是本开发包的运行态开发基线，按 `AGENTS.md` 检查冲突后配
 
 ## 按任务选择专业技能
 
-1. 先完整读取 [GodotPrompter 技能目录](skills/using-godot-prompter/SKILL.md)，用其中的任务映射确认当前需要哪些 Skill。
+1. 搜索 `skills/*/SKILL.md` 前置元数据中的 `name` 和 `description`，用当前任务的对象、风险和 Godot 领域词选择 Skill；支持原生发现的 AI 直接使用其技能目录。`using-godot-prompter` 是上游插件的安装与完整工作流入口，不是本开发包每次任务的必读目录。
 2. 只读取当前任务直接相关的 Skill 正文；一个任务可以组合多个，但不要预先加载全部 54 个。
 3. 项目已有更具体的 Skill、合同和实现时优先使用；GodotPrompter 提供领域方法，不覆盖项目事实。
 4. 第三方插件 Skill（例如 LimboAI、Beehave、Dialogue Manager、Popochiu、Phantom Camera）只有项目确实采用对应插件时才读取，不能把 Skill 的存在当成安装插件的授权。
@@ -43,6 +43,7 @@ MCP 是本开发包的运行态开发基线，按 `AGENTS.md` 检查冲突后配
 6. GodotPrompter 的测试 Skill 会介绍 GUT 和 gdUnit4，但目标项目已有测试方式时不得擅自替换；是否引入外部测试框架按 README 的工具经验和用户授权决定。
 7. 新增或大改正式 UI 时，同时读取 [Godot UI](skills/godot-ui/SKILL.md) 与 [场景组织](skills/scene-organization/SKILL.md)：前者决定控件、布局和输入，后者决定 `.tscn` 组件边界。不能只学会创建控件，就把完整界面树写进控制器脚本。
 8. 新增独立能力、明显扩大既有能力、重构或审查架构时读取 [Godot 代码审查](skills/godot-code-review/SKILL.md)；涉及多步状态提交、撤销、导入、内容目录、数据迁移或持久化时，同时读取 [Godot 测试](skills/godot-testing/SKILL.md)、[存档](skills/save-load/SKILL.md) 和 [Resource 数据模式](skills/resource-pattern/SKILL.md)。物品目录与独立持有状态再读取 [库存系统](skills/inventory-system/SKILL.md)。
+9. GodotPrompter Skill 主要提供 Godot 领域知识。其关于头脑风暴、逐次批准、计划存放目录、代码审查、测试驱动开发、测试框架或安装插件的通用工作流要求，不覆盖目标项目和本开发包的范围、文档、授权与按风险验证规则；只采用当前任务真正需要且不冲突的部分。
 
 ## 使用离线文档
 
@@ -92,6 +93,8 @@ references/godot-4.7-docs/
 同一连续修改中的保存、测试重跑和内部拆分不单独记录；父子阶段不重复同一事实。一次性可丢弃原型可以不建日志；跨会话、协作、长期维护或高风险项目保留一个唯一状态入口。
 
 ## 完成条件
+
+复杂变更先按“用户可观察目标／验收场景 → 实际实现所有者与正式入口 → 自动测试及按风险需要的其他证据”逐项复核。先确认用户意图没有在技术实现中丢失，再检查技术质量；发现承诺无实现、实现无授权、测试绕过正式入口或临时计划已经过期时，不得宣布完成。简单任务只在当前任务中简短核对，不新建规格文件。
 
 只有用户要求的结果在承诺范围内可用、所需程序证据完成、本次生成产物和进程已经按项目保留策略收束、剩余风险公开时，才宣布完成。完成报告只需说明用户获得什么、改动位置、未做内容、直接相关证据和是否需要产品验收；未生成磁盘产物时不增加清理报告。
 

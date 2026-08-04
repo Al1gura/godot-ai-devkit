@@ -79,4 +79,4 @@ Rules:
 - Runtime and open-world tools require `--allow-open-world`.
 - Configure tokens via `GODOT_MCP_TOKEN` environment variable; never print them.
 
-See `references/command-workflows.md` for copyable task flows.
+See [command workflows](references/command-workflows.md) for copyable task flows.

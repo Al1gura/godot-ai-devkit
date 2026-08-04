@@ -12,7 +12,7 @@
 2. 检查目标 Godot 项目的实际文件、Git 状态、精确 Godot 版本和已有规则。
 3. 读取本开发包的 `AGENTS.md`，其中已经写明每次任务读什么、不同内容写到哪里和何时更新。目标项目已有自己的根 `AGENTS.md` 时同时遵守，冲突处以更具体的项目规则为准。
 4. 长期项目没有根 `AGENTS.md` 时，由 AI 根据已确认的项目事实创建简短的项目专用指令并指向本开发包；不要求用户复制、改名、填模板或理解内部文件。
-5. 先读取 `skills/using-godot-prompter/SKILL.md` 的技能目录，再根据根 `SKILL.md` 和当前任务，只读取需要的细分技能与离线文档；不要一次读取全部 54 个 GodotPrompter Skill 正文。需要 Godot 编辑器运行态证据时再读取 `skills/gdmcp/SKILL.md`。
+5. 搜索 `skills/*/SKILL.md` 前置元数据中的 `name` 和 `description`，根据根 `SKILL.md` 与当前任务选择细分技能；只读取命中的 Skill 正文，不把 `skills/using-godot-prompter/SKILL.md` 当作每次必读流程，也不要一次读取全部 54 个 GodotPrompter Skill。需要 Godot 编辑器运行态证据时再读取 `skills/gdmcp/SKILL.md`。
 6. 按下文“MCP 开发基线”检查并配置随包运行态工具；检查其他已有工具和插件，只在当前任务确实需要时才推荐新增。
 7. 向用户询问无法从项目发现且会改变产品方向的选择；不要让用户补技术术语、重复执行自动验证或管理本开发包内部文件。
 
@@ -25,6 +25,7 @@ godot-ai-devkit/
 ├── AGENTS.md
 ├── LICENSE
 ├── THIRD_PARTY_NOTICES.md
+├── scripts/validate_devkit.py  开发包自身的 Python 标准库完整性检查
 ├── addons/godot_mcp/          Godot-MCP-Native 1.0.8 干净发布文件
 ├── .gdmcp/bin/gdmcp.exe       Windows x86_64 命令行程序
 ├── references/
@@ -53,6 +54,7 @@ godot-ai-devkit/
 - `addons/godot_mcp/` 与 `.gdmcp/bin/gdmcp.exe` 是内置的运行态开发基线；前者跨平台，后者是 Windows x86_64 版本。
 - `references/` 保存开发要求、代码规范、错误经验和精确版本文档。
 - `AGENTS.md` 是直接生效的通用开发规则，并包含文档读取、归类和更新方法；不是模板。
+- `scripts/validate_devkit.py` 只在维护本开发包时运行，检查 Skill 元数据／体积、相对链接、孤儿引用、内容数量和 MCP 版本／二进制校验；它只使用 Python 3 标准库，不是目标游戏的测试框架，也不要求使用开发包的普通用户运行。
 
 ## 项目文档按规模生长
 
